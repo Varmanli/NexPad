@@ -6,7 +6,6 @@ export default function Home() {
   return (
     <div>
       <HeroSection />
-      {/* <Toturial /> */}
       <BlogUi />
     </div>
   );

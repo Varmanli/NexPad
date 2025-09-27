@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Button from "./Buttoon";
 
 interface CardProps {
   id: string;
   title: string;
   coverImage?: string;
   buttonText?: string;
-  itemType?: "course" | "blog"; 
+  itemType?: "course" | "blog";
 }
 
 export default function Card({
@@ -46,9 +47,7 @@ export default function Card({
             {title}
           </h2>
 
-          <button className="mt-auto w-full py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-white font-semibold rounded-xl shadow-md hover:shadow-xl transition-all duration-300">
-            {buttonText}
-          </button>
+          <Button size="md">{buttonText}</Button>
         </div>
 
         {/* افکت overlay */}

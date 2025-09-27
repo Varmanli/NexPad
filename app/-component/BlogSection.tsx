@@ -8,6 +8,7 @@ import Link from "next/link";
 import Status from "./Status";
 import { motion } from "framer-motion";
 import { FaFire, FaSortAmountDownAlt, FaSortAmountUp } from "react-icons/fa";
+import Button from "./Buttoon";
 
 interface BlogSectionProps {
   hideTabs?: boolean;
@@ -231,24 +232,27 @@ export default function BlogSection({
 
       {/* دکمه مشاهده همه مقالات */}
       {!hideTabs && (
-        <div className="text-center my-5 z-10 relative">
-          <Link
-            href={
-              selectedCategory === "all"
-                ? "/blogs"
-                : `/blogs/category/${selectedCategory}`
-            }
-            className="inline-block px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow hover:scale-105 transition-transform"
-          >
-            مشاهده همه مقالات
-          </Link>
+        <div className="text-center my-10 z-10 relative">
+          <Button size="lg">
+            <Link
+              href={
+                selectedCategory === "all"
+                  ? "/blogs"
+                  : `/blogs/category/${selectedCategory}`
+              }
+              className="inline-block"
+            >
+              مشاهده همه مقالات
+            </Link>
+          </Button>
         </div>
       )}
 
-      {/* بک‌گراند گرافیکی */}
-      <div className="absolute top-1 left-[30%] w-72 h-72 md:w-[700px] md:h-[700px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-400 opacity-30 blur-3xl pointer-events-none -z-10"></div>
-      <div className="absolute top-1/4 left-0 w-72 h-72 md:w-[400px] md:h-[400px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-400 opacity-30 blur-3xl pointer-events-none -z-10"></div>
-      <div className="absolute top-20 right-0 w-72 md:w-[400px] md:h-[400px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-400 opacity-30 blur-3xl pointer-events-none -z-10"></div>
+      {/* بک‌گراند گرافیکی سبز گرادیانت */}
+      {/* بک‌گراند گرافیکی سبز */}
+      <div className="absolute top-1 left-[30%] w-72 h-72 md:w-[700px] md:h-[700px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
+      <div className="absolute top-1/4 left-0 w-72 h-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-25 blur-3xl pointer-events-none -z-10"></div>
+      <div className="absolute top-20 right-0 w-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
     </section>
   );
 }
