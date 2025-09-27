@@ -36,7 +36,7 @@ export default function HeroSection() {
         >
           <span
             className="px-3 py-1 text-sm font-mono rounded-full border 
-                       border-[#00FF99] text-[#00FF99] inline-block"
+                       border-[#00FF99] text-[#00653c] dark:text-[#00FF99] inline-block"
           >
             🚀 Nexpad - یادگیری برنامه‌نویسی باحال!
           </span>
@@ -48,7 +48,10 @@ export default function HeroSection() {
           transition={{ delay: 0.2, duration: 0.6 }}
           className="text-3xl sm:text-5xl font-bold leading-tight dark:text-white"
         >
-          مقاله‌های <span className="text-[#00FF99]">جالب و آموزشی</span>{" "}
+          مقاله‌های{" "}
+          <span className="text-[#00653c] dark:text-[#00FF99] ">
+            جالب و آموزشی
+          </span>{" "}
           برنامه‌نویسی
         </motion.h1>
 
