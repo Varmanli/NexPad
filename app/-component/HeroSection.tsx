@@ -12,7 +12,7 @@ export default function HeroSection() {
                 h-[100vh] mt-[-84px] transition-colors duration-300"
     >
       {/* افکت زمینه کدنویسی */}
-      {/* <div
+      <div
         className="absolute inset-0 opacity-10 g- dark:opacity-20 pointer-events-none 
                    "
       >
@@ -24,7 +24,7 @@ export default function HeroSection() {
           opacity={0.8}
           mouseInteractive={true}
         />
-      </div> */}
+      </div>
 
       {/* محتوای اصلی */}
       <div className="relative max-w-3xl mx-auto">
