@@ -9,7 +9,7 @@ export default function HeroSection() {
   return (
     <section
       className="relative flex flex-col justify-center items-center text-center py-20 px-4
-                h-[100vh] mt-[-84px] transition-colors duration-300"
+                h-[100vh] mt-[-84px] transition-colors duration-300 overflow-x-hidden"
     >
       {/* افکت زمینه کدنویسی */}
       <div
