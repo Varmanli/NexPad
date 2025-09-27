@@ -11,21 +11,6 @@ export default function HeroSection() {
       className="relative flex flex-col justify-center items-center text-center py-20 px-4
                 h-[100vh] mt-[-84px] transition-colors duration-300 overflow-x-hidden"
     >
-      {/* افکت زمینه کدنویسی */}
-      <div
-        className="absolute inset-0 opacity-10 g- dark:opacity-20 pointer-events-none 
-                   "
-      >
-        <Plasma
-          color="#00FF99"
-          speed={0.6}
-          direction="forward"
-          scale={1.1}
-          opacity={0.8}
-          mouseInteractive={true}
-        />
-      </div>
-
       {/* محتوای اصلی */}
       <div className="relative max-w-3xl mx-auto">
         <motion.div
