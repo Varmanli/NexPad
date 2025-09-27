@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { BiArrowBack } from "react-icons/bi";
-import Plasma from "./Plasma";
 import Button from "./Buttoon";
 
 export default function HeroSection() {
