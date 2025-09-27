@@ -8,10 +8,12 @@ export default function SiteLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeProvider>
-      <Header />
-      <main className="flex-grow">{children}</main>
-      <Footer />
-    </ThemeProvider>
+    <div>
+      <ThemeProvider>
+        <Header />
+        <main className="flex-grow">{children}</main>
+        <Footer />
+      </ThemeProvider>
+    </div>
   );
 }

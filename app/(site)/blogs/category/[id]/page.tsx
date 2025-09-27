@@ -1,167 +1,152 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { useParams } from "next/navigation";
+import { IBlog } from "@/models/Blog";
+import { ICategory } from "@/models/Category";
 
-interface Category {
-  _id: string;
-  name: string;
-  createdAt: string;
-  blogCount?: number; // 👈 تعداد بلاگ‌های هر دسته
-}
+import { motion } from "framer-motion";
+import { FaFire, FaSortAmountDownAlt, FaSortAmountUp } from "react-icons/fa";
+import Status from "@/app/-component/Status";
+import Card from "@/app/-component/Card";
 
-type SortField = "name" | "createdAt" | "blogCount";
-type SortOrder = "asc" | "desc";
-
-export default function CategoryManagePage() {
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function CategoryPage() {
+  const { id } = useParams(); // آیدی دسته‌بندی
+  const [blogs, setBlogs] = useState<IBlog[]>([]);
+  const [category, setCategory] = useState<ICategory | null>(null);
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "popular">(
+    "newest"
+  );
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/categories");
-      if (!res.ok) throw new Error("خطا در دریافت دسته‌بندی‌ها");
-      const data = await res.json();
-
-      // فرض می‌کنیم API تعداد بلاگ رو نمی‌ده => باید دستی بگیریم
-      const categoriesWithCounts = await Promise.all(
-        data.map(async (cat: Category) => {
-          try {
-            const blogRes = await fetch(`/api/blogs?category=${cat._id}`);
-            const blogs = blogRes.ok ? await blogRes.json() : [];
-            return { ...cat, blogCount: blogs.length };
-          } catch {
-            return { ...cat, blogCount: 0 };
-          }
-        })
-      );
-
-      setCategories(categoriesWithCounts);
-    } catch (err) {
-      console.error(err);
-      setError("خطا در دریافت دسته‌بندی‌ها");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    if (!id) return;
 
-  const handleSort = (field: SortField) => {
-    if (field === sortField) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
+    async function fetchData() {
+      try {
+        setLoading(true);
+
+        // گرفتن اسم دسته‌بندی از API
+        const categoryRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/${id}`,
+          { cache: "no-store" }
+        );
+        if (!categoryRes.ok) throw new Error("خطا در دریافت دسته‌بندی");
+        const categoryData = await categoryRes.json();
+        setCategory(categoryData);
+
+        // گرفتن بلاگ‌های اون دسته
+        const blogsRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs?category=${id}`,
+          { cache: "no-store" }
+        );
+        if (!blogsRes.ok) throw new Error("خطا در دریافت بلاگ‌ها");
+        const blogsData = await blogsRes.json();
+        setBlogs(blogsData);
+      } catch (err) {
+        console.error(err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     }
-  };
 
-  const sortedCategories = [...categories].sort((a, b) => {
-    let valA: number | string = "";
-    let valB: number | string = "";
+    fetchData();
+  }, [id]);
 
-    if (sortField === "name") {
-      valA = a.name;
-      valB = b.name;
-    } else if (sortField === "createdAt") {
-      valA = new Date(a.createdAt).getTime();
-      valB = new Date(b.createdAt).getTime();
-    } else if (sortField === "blogCount") {
-      valA = a.blogCount ?? 0;
-      valB = b.blogCount ?? 0;
-    }
+  if (loading) return <Status type="loading" message="در حال بارگذاری..." />;
+  if (error) return <Status type="error" message="خطا در دریافت داده‌ها" />;
 
-    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+  // مرتب‌سازی
+  const sortedBlogs = [...blogs].sort((a, b) => {
+    if (sortOrder === "newest")
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    if (sortOrder === "oldest")
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    if (sortOrder === "popular") return b.views - a.views;
     return 0;
   });
 
-  const renderSortIcon = (field: SortField) => {
-    if (sortField !== field)
-      return <FaSort className="inline ml-1 text-gray-400" />;
-    return sortOrder === "asc" ? (
-      <FaSortUp className="inline ml-1 text-blue-500" />
-    ) : (
-      <FaSortDown className="inline ml-1 text-blue-500" />
-    );
-  };
-
-  if (loading)
-    return (
-      <main className="p-6 text-gray-800 dark:text-gray-100 min-h-screen">
-        <p className="text-center text-accent dark:text-[#00FF99] mt-10">
-          در حال بارگذاری دسته‌بندی‌ها...
-        </p>
-      </main>
-    );
-
   return (
-    <main className="p-6 min-h-screen text-gray-900 dark:text-gray-100">
-      <h1 className="text-3xl font-bold text-accent dark:text-[#00FF99] mb-6">
-        مدیریت دسته‌بندی‌ها
+    <section className="relative z-20 md:px-14">
+      {/* عنوان دسته‌بندی */}
+      <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-transparent bg-clip-text animate-fadeIn mb-8 text-center pt-14">
+        مقالات {category?.name || "دسته‌بندی"}
       </h1>
 
-      {error && <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>}
-
-      <div className="overflow-x-auto">
-        <table className="w-full bg-white dark:bg-[#1e1e22] shadow-xl rounded-2xl overflow-hidden">
-          <thead>
-            <tr className="bg-gray-100 dark:bg-[#2a2a2e] text-gray-700 dark:text-gray-300">
-              <th
-                className="p-4 text-right cursor-pointer hover:text-blue-500"
-                onClick={() => handleSort("name")}
-              >
-                نام دسته {renderSortIcon("name")}
-              </th>
-              <th
-                className="p-4 text-right cursor-pointer hover:text-blue-500"
-                onClick={() => handleSort("createdAt")}
-              >
-                تاریخ ایجاد {renderSortIcon("createdAt")}
-              </th>
-              <th
-                className="p-4 text-right cursor-pointer hover:text-blue-500"
-                onClick={() => handleSort("blogCount")}
-              >
-                تعداد بلاگ‌ها {renderSortIcon("blogCount")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedCategories.map((cat, i) => (
-              <tr
-                key={cat._id}
-                className={`transition-all ${
-                  i % 2 === 0
-                    ? "bg-gray-50 dark:bg-[#242429]"
-                    : "bg-white dark:bg-[#1e1e22]"
-                } hover:bg-blue-50 dark:hover:bg-[#2e2e34]`}
-              >
-                <td className="p-4 font-medium">{cat.name}</td>
-                <td className="p-4">
-                  {new Date(cat.createdAt).toLocaleDateString("fa-IR")}
-                </td>
-                <td className="p-4">{cat.blogCount ?? 0}</td>
-              </tr>
-            ))}
-            {categories.length === 0 && (
-              <tr>
-                <td
-                  colSpan={3}
-                  className="p-4 text-center text-gray-500 dark:text-gray-400"
-                >
-                  هیچ دسته‌بندی موجود نیست.
-                </td>
-              </tr>
+      {/* دکمه مرتب‌سازی */}
+      <div className="flex justify-end mb-8 md:px-6">
+        <div className="relative inline-block group">
+          <button className="w-44 flex justify-between items-center gap-3 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1">
+            {sortOrder === "newest" && (
+              <>
+                جدیدترین <FaSortAmountDownAlt />
+              </>
             )}
-          </tbody>
-        </table>
+            {sortOrder === "oldest" && (
+              <>
+                قدیمی‌ترین <FaSortAmountUp />
+              </>
+            )}
+            {sortOrder === "popular" && (
+              <>
+                محبوب‌ترین <FaFire />
+              </>
+            )}
+          </button>
+
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute mt-2 right-0 w-44 rounded-xl bg-white dark:bg-gray-800 shadow-xl z-20 overflow-hidden border border-gray-200 dark:border-gray-700 opacity-0 scale-95 invisible group-hover:visible group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
+          >
+            {["newest", "oldest", "popular"].map((option) => (
+              <div
+                key={option}
+                onClick={() =>
+                  setSortOrder(option as "newest" | "oldest" | "popular")
+                }
+                className="px-4 py-2 cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white transition-colors duration-200"
+              >
+                {option === "newest"
+                  ? "جدیدترین"
+                  : option === "oldest"
+                  ? "قدیمی‌ترین"
+                  : "محبوب‌ترین"}
+              </div>
+            ))}
+          </motion.div>
+        </div>
       </div>
-    </main>
+
+      {/* لیست بلاگ‌ها */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 md:px-6 mb-[200px]">
+        {sortedBlogs.length ? (
+          sortedBlogs.map((blog) => (
+            <div key={String(blog._id)} className="p-5">
+              <Card
+                id={String(blog._id)}
+                title={blog.title}
+                coverImage={blog.coverImage}
+                buttonText="مطالعه مقاله"
+                itemType="blog"
+              />
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500 dark:text-gray-400 mt-12 z-10 relative">
+            مقاله‌ای برای این دسته‌بندی پیدا نشد.
+          </p>
+        )}
+      </div>
+
+      {/* بک‌گراند گرادیانت */}
+      <div className="absolute top-1 left-[30%] w-72 h-72 md:w-[700px] md:h-[700px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
+      <div className="absolute top-1/4 left-0 w-72 h-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-25 blur-3xl pointer-events-none -z-10"></div>
+      <div className="absolute top-20 right-0 w-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
+    </section>
   );
 }
