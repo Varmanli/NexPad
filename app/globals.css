@@ -3,7 +3,7 @@
 @tailwind utilities;
 html,
 body {
-  @apply bg-rose-200 dark:bg-[#0f0f20];
+  @apply bg-gray-300 dark:bg-[#0f0f20];
 }
 html {
   scroll-behavior: smooth;
@@ -145,11 +145,4 @@ body::-webkit-scrollbar-thumb {
   line-height: 1.6;
   text-align: left;
   direction: ltr;
-}
-.swiper-pagination-bullet {
-  @apply bg-gray-400 dark:bg-purple-500;
-}
-
-.swiper-pagination-bullet-active {
-  @apply bg-pink-500 dark:bg-purple-500;
 }
