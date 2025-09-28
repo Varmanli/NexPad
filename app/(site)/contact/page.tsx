@@ -124,7 +124,7 @@ function Page() {
           {/* شبکه‌های اجتماعی */}
           <div className="flex justify-center gap-6 mt-4">
             <a
-              href="https://instagram.com/nexpad"
+              href="https://instagram.com/nex.pad"
               target="_blank"
               rel="noopener noreferrer"
               className="text-pink-500 hover:text-pink-400 transition-colors text-2xl"
@@ -133,7 +133,7 @@ function Page() {
               <FaInstagram />
             </a>
             <a
-              href="https://linkedin.com/in/nexpad"
+              href="https://www.linkedin.com/in/amirhosein-varmanli"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-700 hover:text-blue-600 transition-colors text-2xl"
@@ -151,7 +151,7 @@ function Page() {
               <FaYoutube />
             </a>
             <a
-              href="https://github.com/nexpad"
+              href="https://github.com/Varmanli"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-800 dark:text-gray-100 hover:text-gray-500 transition-colors text-2xl"
