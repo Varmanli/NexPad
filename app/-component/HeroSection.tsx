@@ -10,6 +10,13 @@ export default function HeroSection() {
       className="relative flex flex-col justify-center items-center text-center py-20 px-4
                 h-[100vh] mt-[-84px] transition-colors duration-300 overflow-x-hidden"
     >
+      {/* گرادینت نور */}
+      <div
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.15),transparent_70%)]
+               dark:bg-[radial-gradient(ellipse_at_top,rgba(0,255,153,0.1),transparent_70%)]
+               pointer-events-none"
+      />
+
       {/* محتوای اصلی */}
       <div className="relative max-w-3xl mx-auto">
         <motion.div
