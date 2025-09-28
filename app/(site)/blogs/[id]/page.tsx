@@ -80,20 +80,43 @@ export default async function BlogPage({ params }: { params: { id: string } }) {
         className="
     prose max-w-none
     text-gray-800 dark:text-gray-200
+
+    /* Headings */
     prose-headings:text-gray-900 dark:prose-headings:text-gray-100
     prose-headings:font-extrabold
-    prose-p:leading-relaxed prose-p:text-gray-800 dark:prose-p:text-gray-200
+
+    /* Paragraphs */
+    prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300
+
+    /* Strong & Emphasis */
     prose-strong:text-gray-900 dark:prose-strong:text-gray-100
     prose-em:text-gray-700 dark:prose-em:text-gray-300
-    prose-a:text-indigo-600 dark:prose-a:text-indigo-400
+
+    /* Links */
+    prose-a:text-indigo-600 dark:prose-a:text-indigo-300
     prose-a:underline hover:prose-a:no-underline
-    prose-blockquote:border-l-4 prose-blockquote:border-indigo-300 dark:prose-blockquote:border-indigo-500
+
+    /* Blockquotes */
+    prose-blockquote:border-l-4 prose-blockquote:border-indigo-400 dark:prose-blockquote:border-indigo-500
     prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300
+
+    /* Images */
     prose-img:rounded-xl prose-img:shadow-lg
-    prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-[2px] prose-code:rounded
-    prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
+
+    /* Inline Code */
+    prose-code:bg-gray-100 dark:prose-code:bg-gray-700
+    prose-code:text-red-600 dark:prose-code:text-red-400
+    prose-code:px-1 prose-code:py-[2px] prose-code:rounded
+
+    /* Code Blocks */
+    prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800
+    prose-pre:text-gray-800 dark:prose-pre:text-gray-100
+    prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
+
+    /* Lists */
     prose-ul:list-disc prose-ol:list-decimal
-    prose-li:mb-2"
+    prose-li:mb-2
+  "
       >
         {parse(blog.content)}
       </div>
