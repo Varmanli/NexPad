@@ -5,7 +5,8 @@ interface Props {
   children: ReactNode;
   active?: boolean;
   onClick?(): void;
-  type?: "button" | "submit" | "reset"; 
+  type?: "button" | "submit" | "reset";
+  title?: string;
 }
 
 const ToolButton: FC<Props> = ({
@@ -13,14 +14,18 @@ const ToolButton: FC<Props> = ({
   active,
   onClick,
   type = "button",
+  title,
 }) => {
   return (
     <button
       type={type}
       onClick={onClick}
+      title={title}
       className={clsx(
-        "p-2 rounded transition-colors",
-        active ? "text-accent" : "text-white"
+        "p-1.5 rounded-lg transition-all text-sm",
+        active
+          ? "bg-primary/15 text-primary"
+          : "text-text-muted hover:bg-surface-hover hover:text-text"
       )}
     >
       {children}

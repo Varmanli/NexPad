@@ -2,73 +2,95 @@ import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
 
 function Footer() {
-  return (
-    <footer className="bg-background z-70 dark:bg-dark text-gray-300 py-10 px-6">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-right">
-        {/* منو */}
-        <nav className="flex md:mr-40 justify-center md:justify-center gap-6 text-sm font-medium">
-          <Link
-            href="/"
-            className="hover:text-accent transition-colors duration-200"
-          >
-            صفحه اصلی
-          </Link>
-          <Link
-            href="/#blog"
-            className="hover:text-accent transition-colors duration-200"
-          >
-            مقالات
-          </Link>
-          <Link
-            href="/about"
-            className="hover:text-accent transition-colors duration-200"
-          >
-            درباره من
-          </Link>
-          <Link
-            href="/contact"
-            className="hover:text-accent transition-colors duration-200"
-          >
-            تماس با من
-          </Link>
-        </nav>
+  const currentYear = new Date().getFullYear();
 
-        {/* شبکه‌های اجتماعی */}
-        <div className="flex justify-center  md:mr-[700px] gap-6">
-          <a
-            href="https://github.com/Varmanli"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-2xl text-gray-400 hover:text-accent transition-transform transform hover:scale-110"
-          >
-            <FaGithub />
-          </a>
-          <a
-            href="https://www.linkedin.com/in/amirhosein-varmanli"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-2xl text-gray-400 hover:text-accent transition-transform transform hover:scale-110"
-          >
-            <FaLinkedin />
-          </a>
-          <a
-            href="mailto:varmanliamirhosein@gmail.com"
-            className="text-2xl text-gray-400 hover:text-accent transition-transform transform hover:scale-110"
-          >
-            <FaEnvelope />
-          </a>
-        </div>
+  const links = [
+    { href: "/", label: "صفحه اصلی" },
+    { href: "/#blog", label: "مقالات" },
+    { href: "/about", label: "درباره من" },
+    { href: "/contact", label: "تماس با من" },
+  ];
+
+  const socials = [
+    {
+      href: "https://github.com/Varmanli",
+      label: "GitHub",
+      icon: <FaGithub />,
+    },
+    {
+      href: "https://www.linkedin.com/in/amirhosein-varmanli",
+      label: "LinkedIn",
+      icon: <FaLinkedin />,
+    },
+    {
+      href: "mailto:varmanliamirhosein@gmail.com",
+      label: "Email",
+      icon: <FaEnvelope />,
+    },
+  ];
+
+  return (
+    <footer
+      dir="rtl"
+      className="relative z-40 mt-20 overflow-hidden border-t border-border bg-surface/90 text-text backdrop-blur-xl"
+    >
+      {/* soft background glow */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute right-1/4 top-0 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute left-1/4 bottom-0 h-40 w-40 rounded-full bg-secondary/10 blur-3xl" />
       </div>
 
-      {/* کپی‌رایت */}
-      <div className="mt-8 border-t border-gray-700 dark:border-gray-600 pt-4 text-center text-xs md:text-sm text-gray-500">
-        © {new Date().getFullYear()} تمامی حقوق محفوظ است |{" "}
-        <a
-          href="https://varmanli.ir"
-          className="text-accent hover:underline hover:text-accent transition"
-        >
-          varmanli.ir
-        </a>
+      <div className="container mx-auto px-6 py-10">
+        <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
+          {/* Menu */}
+          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-medium">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-text-muted transition-colors duration-200 hover:text-primary"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Socials */}
+          <div className="flex items-center justify-center gap-3">
+            {socials.map((social) => (
+              <a
+                key={social.href}
+                href={social.href}
+                target={
+                  social.href.startsWith("mailto:") ? undefined : "_blank"
+                }
+                rel={
+                  social.href.startsWith("mailto:")
+                    ? undefined
+                    : "noopener noreferrer"
+                }
+                aria-label={social.label}
+                className="grid h-10 w-10 place-items-center rounded-2xl border border-border bg-surface-soft text-lg text-text-soft transition-all duration-200 hover:-translate-y-1 hover:border-primary/50 hover:bg-primary-soft hover:text-primary"
+              >
+                {social.icon}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom */}
+        <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-border pt-5 text-center text-xs text-text-soft md:flex-row">
+          <p>© {currentYear} تمامی حقوق محفوظ است.</p>
+
+          <a
+            href="https://varmanli.ir"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary transition-colors hover:text-primary-hover hover:underline"
+          >
+            varmanli.ir
+          </a>
+        </div>
       </div>
     </footer>
   );

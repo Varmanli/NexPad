@@ -19,12 +19,11 @@ export default function Card({
   buttonText = "مشاهده",
   itemType = "course",
 }: CardProps) {
-  // تعیین مسیر بر اساس نوع آیتم
   const href = itemType === "course" ? `/courses/${id}` : `/blogs/${id}`;
 
   return (
     <Link href={href} className="group relative block">
-      <div className="bg-white dark:bg-[#1e1e22] rounded-3xl overflow-hidden shadow-lg dark:shadow-[#00FF99]/30 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer">
+      <div className="bg-surface rounded-3xl overflow-hidden shadow-lg shadow-primary/10 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer border border-border">
         {/* تصویر کاور */}
         {coverImage ? (
           <div className="relative w-full h-48 overflow-hidden rounded-t-3xl">
@@ -36,14 +35,14 @@ export default function Card({
             />
           </div>
         ) : (
-          <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
+          <div className="w-full h-48 bg-surface-soft flex items-center justify-center text-text-soft">
             بدون تصویر
           </div>
         )}
 
         {/* محتوا */}
         <div className="p-6 flex flex-col justify-between h-40">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-[#00FF99] mb-4 group-hover:text-indigo-400 transition-colors">
+          <h2 className="text-xl font-bold text-text mb-4 group-hover:text-primary transition-colors">
             {title}
           </h2>
 

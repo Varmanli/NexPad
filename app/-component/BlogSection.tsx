@@ -1,13 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IBlog } from "@/models/Blog";
 import { ICategory } from "@/models/Category";
 import Card from "./Card";
 import Link from "next/link";
 import Status from "./Status";
-import { motion } from "framer-motion";
-import { FaFire, FaSortAmountDownAlt, FaSortAmountUp } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaFire,
+  FaSortAmountDownAlt,
+  FaSortAmountUp,
+  FaChevronDown,
+  FaLayerGroup,
+  FaNewspaper,
+  FaArrowLeft,
+} from "react-icons/fa";
 import Button from "./Buttoon";
 
 interface BlogSectionProps {
@@ -15,6 +23,8 @@ interface BlogSectionProps {
   initialCategoryId?: string;
   categoryName?: string;
 }
+
+type SortOrder = "newest" | "oldest" | "popular";
 
 export default function BlogSection({
   hideTabs = false,
@@ -25,26 +35,26 @@ export default function BlogSection({
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [selectedCategory, setSelectedCategory] =
     useState<string>(initialCategoryId);
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "popular">(
-    "newest"
-  );
+  const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        setError(false);
+
         const [blogsRes, categoriesRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs`, {
-            cache: "no-store",
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`, {
-            cache: "no-store",
-          }),
+          fetch("/api/blogs", { cache: "no-store" }),
+          fetch("/api/categories", { cache: "no-store" }),
         ]);
-        if (!blogsRes.ok || !categoriesRes.ok)
+
+        if (!blogsRes.ok || !categoriesRes.ok) {
           throw new Error("خطا در دریافت داده‌ها");
+        }
 
         const blogsData = await blogsRes.json();
         const categoriesData = await categoriesRes.json();
@@ -58,201 +68,453 @@ export default function BlogSection({
         setLoading(false);
       }
     }
+
     fetchData();
   }, []);
 
-  if (loading)
-    return <Status type="loading" message="در حال دریافت بلاگ‌ها..." />;
-  if (error) return <Status type="error" message="خطا در دریافت داده‌ها" />;
+  useEffect(() => {
+    setSelectedCategory(initialCategoryId);
+  }, [initialCategoryId]);
 
-  const filteredBlogs =
+  const pageTitle =
+    categoryName === "همه مقالات"
+      ? "همه مقالات"
+      : categoryName
+        ? `مقالات ${categoryName}`
+        : "آخرین مقالات";
+
+  const selectedCategoryName =
     selectedCategory === "all"
+      ? "همه مقالات"
+      : categories.find((c) => String(c._id) === selectedCategory)?.name ||
+        "انتخاب دسته‌بندی";
+
+  const sortOptions: {
+    value: SortOrder;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      value: "newest",
+      label: "جدیدترین",
+      icon: <FaSortAmountDownAlt />,
+    },
+    {
+      value: "oldest",
+      label: "قدیمی‌ترین",
+      icon: <FaSortAmountUp />,
+    },
+    {
+      value: "popular",
+      label: "محبوب‌ترین",
+      icon: <FaFire />,
+    },
+  ];
+
+  const currentSort = sortOptions.find((item) => item.value === sortOrder);
+
+  const filteredBlogs = useMemo(() => {
+    return selectedCategory === "all"
       ? blogs
       : blogs.filter((blog) => String(blog.category) === selectedCategory);
+  }, [blogs, selectedCategory]);
 
-  const sortedBlogs = [...filteredBlogs].sort((a, b) => {
-    if (sortOrder === "newest")
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    if (sortOrder === "oldest")
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    if (sortOrder === "popular") return b.views - a.views;
-    return 0;
-  });
+  const sortedBlogs = useMemo(() => {
+    return [...filteredBlogs].sort((a, b) => {
+      if (sortOrder === "newest") {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      }
+
+      if (sortOrder === "oldest") {
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+
+      if (sortOrder === "popular") {
+        return (b.views || 0) - (a.views || 0);
+      }
+
+      return 0;
+    });
+  }, [filteredBlogs, sortOrder]);
 
   const displayBlogs = hideTabs ? sortedBlogs : sortedBlogs.slice(0, 9);
 
-  return (
-    <section id="blog" className={`relative z-20 md:px-14 `}>
-      <h1
-        className={`text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-transparent bg-clip-text animate-fadeIn mb-8 text-center ${
-          hideTabs ? "pt-10" : "pt-14"
-        }`}
-      >
-        {categoryName === "همه مقالات"
-          ? "همه مقالات"
-          : categoryName
-          ? `مقالات ${categoryName}`
-          : "مقالات"}
-      </h1>
+  if (loading) {
+    return (
+      <section id="blog" dir="rtl" className="relative z-20 px-4 py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto mb-10 h-10 w-56 animate-pulse rounded-2xl bg-surface-hover" />
 
-      {/* دکمه‌های دسته‌بندی و مرتب‌سازی */}
-      {!hideTabs && (
-        <div className="container mx-auto px-4 flex flex-row-reverse justify-between items-center gap-4 mb-6  z-20 relative">
-          <div className="relative w-48 md:w-56">
-            {/* Dropdown */}
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="w-full flex justify-between items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1"
-            >
-              <span className="truncate">
-                {selectedCategory === "all"
-                  ? "همه مقالات"
-                  : categories.find((c) => String(c._id) === selectedCategory)
-                      ?.name || "انتخاب دسته‌بندی"}
-              </span>
-              <svg
-                className={`w-4 h-4 ml-2 transition-transform duration-200 ${
-                  dropdownOpen ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {dropdownOpen && (
-              <div className="absolute mt-2 w-full rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden animate-dropdown-fade">
-                <div
-                  onClick={() => {
-                    setSelectedCategory("all");
-                    setDropdownOpen(false);
-                  }}
-                  className={`px-4 py-2 cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white transition-colors duration-200 ${
-                    selectedCategory === "all"
-                      ? "bg-purple-200 dark:bg-accent font-semibold"
-                      : ""
-                  } rounded-t-lg`}
-                >
-                  همه مقالات
-                </div>
-                {categories.map((cat, idx) => (
-                  <div
-                    key={String(cat._id)}
-                    onClick={() => {
-                      setSelectedCategory(String(cat._id));
-                      setDropdownOpen(false);
-                    }}
-                    className={`px-4 py-2 cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white transition-colors duration-200 ${
-                      selectedCategory === String(cat._id)
-                        ? "bg-purple-200 dark:bg-accent font-semibold"
-                        : ""
-                    } ${idx === categories.length - 1 ? "rounded-b-lg" : ""}`}
-                  >
-                    {cat.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* مرتب‌سازی */}
-          <div className="relative inline-block">
-            <div className="relative inline-block group">
-              <button className="w-full flex justify-between items-center gap-3 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1">
-                {sortOrder === "newest" && (
-                  <>
-                    جدیدترین <FaSortAmountDownAlt />
-                  </>
-                )}
-                {sortOrder === "oldest" && (
-                  <>
-                    قدیمی‌ترین <FaSortAmountUp />
-                  </>
-                )}
-                {sortOrder === "popular" && (
-                  <>
-                    محبوب‌ترین <FaFire />
-                  </>
-                )}
-              </button>
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="absolute mt-2 w-40 rounded-xl bg-white dark:bg-gray-800 shadow-xl z-20 overflow-hidden border border-gray-200 dark:border-gray-700 opacity-0 scale-95 invisible group-hover:visible group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
-              >
-                {["newest", "oldest", "popular"].map((option) => (
-                  <div
-                    key={option}
-                    onClick={() =>
-                      setSortOrder(option as "newest" | "oldest" | "popular")
-                    }
-                    className="px-4 py-2 cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white transition-colors duration-200"
-                  >
-                    {option === "newest"
-                      ? "جدیدترین"
-                      : option === "oldest"
-                      ? "قدیمی‌ترین"
-                      : "محبوب‌ترین"}
-                  </div>
-                ))}
-              </motion.div>
-            </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="
+                  h-80 animate-pulse rounded-[2rem] border border-border
+                  bg-white shadow-sm
+                  dark:border-white/10 dark:bg-white/[0.04]
+                "
+              />
+            ))}
           </div>
         </div>
-      )}
+      </section>
+    );
+  }
 
-      {/* نمایش لیست بلاگ‌ها */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 md:px-6">
-        {displayBlogs.length ? (
-          displayBlogs.map((blog) => (
-            <div key={String(blog._id)} className="p-5">
-              <Card
-                id={String(blog._id)}
-                title={blog.title}
-                coverImage={blog.coverImage}
-                buttonText="مطالعه مقاله"
-                itemType="blog"
-              />
-            </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400 mt-12 z-10 relative">
-            مقاله‌ای برای این دسته‌بندی پیدا نشد.
-          </p>
-        )}
+  if (error) return <Status type="error" message="خطا در دریافت داده‌ها" />;
+
+  return (
+    <section
+      id="blog"
+      dir="rtl"
+      className="
+        relative z-20 overflow-hidden px-4 py-20
+        bg-background text-text
+        sm:px-6 lg:px-8
+      "
+    >
+      {/* Background */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div
+          className="
+            absolute inset-0 opacity-60
+            bg-[radial-gradient(circle_at_50%_0%,rgba(5,150,105,0.13),transparent_32%),radial-gradient(circle_at_15%_45%,rgba(124,58,237,0.10),transparent_28%),radial-gradient(circle_at_85%_55%,rgba(8,145,178,0.10),transparent_30%)]
+            dark:bg-[radial-gradient(circle_at_50%_0%,rgba(22,242,164,0.12),transparent_32%),radial-gradient(circle_at_15%_45%,rgba(139,92,246,0.14),transparent_28%),radial-gradient(circle_at_85%_55%,rgba(34,211,238,0.10),transparent_30%)]
+          "
+        />
+
+        <div
+          className="
+            absolute inset-0 opacity-[0.35]
+            [background-image:linear-gradient(to_right,rgba(15,23,42,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.07)_1px,transparent_1px)]
+            [background-size:56px_56px]
+            dark:opacity-[0.10]
+            dark:[background-image:linear-gradient(to_right,rgba(255,255,255,0.16)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.16)_1px,transparent_1px)]
+          "
+        />
+
+        <div className="absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-secondary/15 blur-3xl" />
       </div>
 
-      {/* دکمه مشاهده همه مقالات */}
-      {!hideTabs && (
-        <div className="text-center my-10 z-10 relative">
-          <Button size="lg">
-            <Link
-              href={
-                selectedCategory === "all"
-                  ? "/blogs"
-                  : `/blogs/category/${selectedCategory}`
-              }
-              className="inline-block"
-            >
-              مشاهده همه مقالات
-            </Link>
-          </Button>
-        </div>
-      )}
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto mb-10 max-w-3xl text-center"
+        >
+          <div
+            className="
+              mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20
+              bg-primary-soft px-4 py-2 text-sm font-black text-primary
+            "
+          >
+            <FaNewspaper />
+            بلاگ Nexpad
+          </div>
 
-      {/* بک‌گراند گرافیکی سبز گرادیانت */}
-      {/* بک‌گراند گرافیکی سبز */}
-      <div className="absolute top-1 left-[30%] w-72 h-72 md:w-[700px] md:h-[700px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
-      <div className="absolute top-1/4 left-0 w-72 h-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-25 blur-3xl pointer-events-none -z-10"></div>
-      <div className="absolute top-20 right-0 w-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
+          <h2
+            className="
+              text-4xl font-black leading-tight tracking-tight text-text md:text-6xl
+            "
+          >
+            {pageTitle}
+          </h2>
+
+          <p className="mx-auto mt-4 max-w-2xl text-base font-medium leading-8 text-text-muted md:text-lg">
+            مقاله‌های آموزشی، کوتاه و کاربردی برای یادگیری بهتر برنامه‌نویسی و
+            توسعه وب.
+          </p>
+        </motion.div>
+
+        {/* Controls */}
+        {!hideTabs && (
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ delay: 0.1, duration: 0.45 }}
+            className="
+              relative z-30 mb-10 rounded-[2rem] border border-border
+              bg-surface/85 p-3 shadow-xl shadow-slate-900/5 backdrop-blur-xl
+            "
+          >
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3 px-2">
+                <span
+                  className="
+                    grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary
+                  "
+                >
+                  <FaLayerGroup />
+                </span>
+
+                <div>
+                  <p className="text-sm font-black text-text">
+                    فیلتر و مرتب‌سازی
+                  </p>
+                  <p className="text-xs font-medium text-text-soft">
+                    {displayBlogs.length} مقاله قابل نمایش
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {/* Category Dropdown */}
+                <div className="relative min-w-56">
+                  <button
+                    onClick={() => {
+                      setCategoryDropdownOpen((prev) => !prev);
+                      setSortDropdownOpen(false);
+                    }}
+                    type="button"
+                    className="
+                      flex w-full items-center justify-between gap-3 rounded-2xl border border-border
+                      bg-surface-soft px-4 py-3 text-sm font-bold text-text
+                      transition-all duration-200 hover:border-primary/50 hover:bg-primary-soft
+                      focus:outline-none focus:ring-4 focus:ring-primary/10
+                    "
+                  >
+                    <span className="truncate">{selectedCategoryName}</span>
+                    <FaChevronDown
+                      size={12}
+                      className={`shrink-0 transition-transform duration-200 ${
+                        categoryDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {categoryDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                        transition={{ duration: 0.16 }}
+                        className="
+                          absolute right-0 top-full z-50 mt-2 w-full overflow-hidden rounded-3xl
+                          border border-border bg-surface p-2 shadow-2xl shadow-slate-900/10
+                        "
+                      >
+                        <button
+                          onClick={() => {
+                            setSelectedCategory("all");
+                            setCategoryDropdownOpen(false);
+                          }}
+                          type="button"
+                          className={`
+                            flex w-full items-center justify-between rounded-2xl px-4 py-3 text-right text-sm font-bold transition-all
+                            ${
+                              selectedCategory === "all"
+                                ? "bg-primary text-black"
+                                : "text-text-muted hover:bg-surface-hover"
+                            }
+                          `}
+                        >
+                          همه مقالات
+                        </button>
+
+                        <div className="my-2 h-px bg-border" />
+
+                        <div className="max-h-64 overflow-y-auto">
+                          {categories.map((cat) => {
+                            const isActive =
+                              selectedCategory === String(cat._id);
+
+                            return (
+                              <button
+                                key={String(cat._id)}
+                                onClick={() => {
+                                  setSelectedCategory(String(cat._id));
+                                  setCategoryDropdownOpen(false);
+                                }}
+                                type="button"
+                                className={`
+                                  flex w-full items-center justify-between rounded-2xl px-4 py-3 text-right text-sm font-bold transition-all
+                                  ${
+                                    isActive
+                                      ? "bg-primary text-black"
+                                      : "text-text-muted hover:bg-surface-hover"
+                                  }
+                                `}
+                              >
+                                {cat.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Sort Dropdown */}
+                <div className="relative min-w-44">
+                  <button
+                    onClick={() => {
+                      setSortDropdownOpen((prev) => !prev);
+                      setCategoryDropdownOpen(false);
+                    }}
+                    type="button"
+                    className="
+                      flex w-full items-center justify-between gap-3 rounded-2xl border border-border
+                      bg-surface-soft px-4 py-3 text-sm font-bold text-text
+                      transition-all duration-200 hover:border-secondary/50 hover:bg-secondary-soft
+                      focus:outline-none focus:ring-4 focus:ring-secondary/10
+                    "
+                  >
+                    <span className="flex items-center gap-2">
+                      {currentSort?.icon}
+                      {currentSort?.label}
+                    </span>
+                    <FaChevronDown
+                      size={12}
+                      className={`shrink-0 transition-transform duration-200 ${
+                        sortDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {sortDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                        transition={{ duration: 0.16 }}
+                        className="
+                          absolute right-0 top-full z-50 mt-2 w-full overflow-hidden rounded-3xl
+                          border border-border bg-surface p-2 shadow-2xl shadow-slate-900/10
+                        "
+                      >
+                        {sortOptions.map((option) => {
+                          const isActive = sortOrder === option.value;
+
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                setSortOrder(option.value);
+                                setSortDropdownOpen(false);
+                              }}
+                              type="button"
+                              className={`
+                                flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-right text-sm font-bold transition-all
+                                ${
+                                  isActive
+                                    ? "bg-violet-500 text-white"
+                                    : "text-text-muted hover:bg-surface-hover"
+                                }
+                              `}
+                            >
+                              {option.icon}
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Blog Grid */}
+        {displayBlogs.length ? (
+          <motion.div
+            layout
+            className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+          >
+            <AnimatePresence mode="popLayout">
+              {displayBlogs.map((blog, index) => (
+                <motion.div
+                  key={String(blog._id)}
+                  layout
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={{ delay: index * 0.035, duration: 0.28 }}
+                  className="
+                    rounded-[2rem] border border-border bg-surface/70 p-2
+                    shadow-xl shadow-slate-900/5 backdrop-blur-xl transition-all duration-300
+                    hover:-translate-y-1 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10
+                  "
+                >
+                  <Card
+                    id={String((blog as any).slug || blog._id)}
+                    title={blog.title}
+                    coverImage={blog.coverImage}
+                    buttonText="مطالعه مقاله"
+                    itemType="blog"
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="
+              mx-auto max-w-lg rounded-[2rem] border border-border bg-surface/85
+              p-10 text-center shadow-xl shadow-slate-900/5 backdrop-blur-xl
+            "
+          >
+            <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-primary-soft text-2xl text-primary">
+              <FaNewspaper />
+            </div>
+
+            <h3 className="text-xl font-black text-text">
+              مقاله‌ای پیدا نشد
+            </h3>
+
+            <p className="mt-3 text-sm font-medium leading-7 text-text-muted">
+              برای این دسته‌بندی هنوز مقاله‌ای منتشر نشده است. دسته‌بندی دیگری
+              را انتخاب کنید.
+            </p>
+
+            <button
+              onClick={() => setSelectedCategory("all")}
+              type="button"
+              className="
+                mt-6 rounded-2xl bg-primary px-5 py-3 text-sm font-black text-black
+                transition-all hover:opacity-90
+              "
+            >
+              نمایش همه مقالات
+            </button>
+          </motion.div>
+        )}
+
+        {/* View All */}
+        {!hideTabs && displayBlogs.length > 0 && (
+          <div className="mt-12 flex justify-center">
+            <Button size="lg">
+              <Link
+                href={
+                  selectedCategory === "all"
+                    ? "/blogs"
+                    : `/blogs/category/${selectedCategory}`
+                }
+                className="inline-flex items-center gap-3"
+              >
+                مشاهده همه مقالات
+                <FaArrowLeft size={14} />
+              </Link>
+            </Button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

@@ -12,15 +12,41 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        accent: "#00FF99",
-        background: "#0f0f20",
-        dark: "#2222",
-        primary: "#55008A",
-        secondary: "#FFAB00",
-        neutral: "#414A53",
-        success: "#38CB89",
-        danger: "#FF5630",
-        info: "#377DFF",
+        background: {
+          DEFAULT: "rgb(var(--background-rgb) / <alpha-value>)",
+          soft: "rgb(var(--background-soft-rgb) / <alpha-value>)",
+        },
+        surface: {
+          DEFAULT: "rgb(var(--surface-rgb) / <alpha-value>)",
+          soft: "rgb(var(--surface-soft-rgb) / <alpha-value>)",
+          hover: "rgb(var(--surface-hover-rgb) / <alpha-value>)",
+        },
+        border: {
+          DEFAULT: "rgb(var(--border-rgb) / <alpha-value>)",
+          soft: "var(--border-soft)",
+        },
+        text: {
+          DEFAULT: "var(--text)",
+          muted: "var(--text-muted)",
+          soft: "var(--text-soft)",
+        },
+        primary: {
+          DEFAULT: "rgb(var(--primary-rgb) / <alpha-value>)",
+          hover: "var(--primary-hover)",
+          soft: "var(--primary-soft)",
+        },
+        secondary: {
+          DEFAULT: "rgb(var(--secondary-rgb) / <alpha-value>)",
+          hover: "var(--secondary-hover)",
+          soft: "var(--secondary-soft)",
+        },
+        accent: {
+          DEFAULT: "rgb(var(--accent-rgb) / <alpha-value>)",
+          soft: "var(--accent-soft)",
+        },
+        danger: "var(--danger)",
+        warning: "var(--warning)",
+        success: "var(--success)",
       },
     },
   },

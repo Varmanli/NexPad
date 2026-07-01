@@ -10,6 +10,11 @@ const vazir = Vazirmatn({
   display: "swap",
 });
 
+// Same env var used throughout the app (API base URL, next-sitemap.config.js)
+// so metadataBase, OpenGraph, and the generated sitemap/robots never disagree
+// on the domain.
+const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
   title: "NexPad | آموزش برنامه نویسی مدرن",
   description:
@@ -34,7 +39,7 @@ export const metadata: Metadata = {
     title: "NexPad | آموزش برنامه نویسی مدرن",
     description:
       "وبلاگ NexPad مرجعی برای مقالات آموزشی در زمینه برنامه نویسی وب، جاوااسکریپت، React، Next.js و Node.js.",
-    url: "https://nexpad.ir",
+    url: SITE_URL,
     siteName: "NexPad",
     locale: "fa_IR",
     type: "website",
@@ -46,7 +51,7 @@ export const metadata: Metadata = {
       "مقالات آموزشی تخصصی در زمینه برنامه نویسی وب و تکنولوژی‌های روز دنیای توسعه.",
     creator: "@nexpad",
   },
-  metadataBase: new URL("https://nexpad.com"),
+  metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },
 };
 

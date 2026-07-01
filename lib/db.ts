@@ -3,7 +3,7 @@ import mongoose, { Mongoose } from "mongoose";
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
-  throw new Error("❌ لطفاً متغیر MONGODB_URI رو توی .env.local ست کن");
+  throw new Error("MONGODB_URI environment variable is not set.");
 }
 
 interface MongooseCache {

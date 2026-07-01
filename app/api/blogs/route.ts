@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Blog, { IBlog } from "@/models/Blog";
+import { generateUniqueSlug } from "@/lib/slugify";
 
 export async function GET(req: Request) {
   try {
@@ -9,12 +10,12 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
 
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     if (category && category !== "all") {
-      query.category = category; // فقط بلاگ‌های دسته موردنظر
+      query.category = category;
     }
 
-    const blogs = await Blog.find(query).sort({ createdAt: -1 }); // مرتب‌سازی نزولی
+    const blogs = await Blog.find(query).sort({ createdAt: -1 });
     return NextResponse.json(blogs);
   } catch (error) {
     console.error("Error fetching blogs:", error);
@@ -34,11 +35,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "title الزامی است" }, { status: 400 });
     }
 
-    // اگر نیاز داری category یا سایر فیلدها هم ارسال بشه، همینجا اضافه کن
-    const blog = await Blog.create({ ...body, slug: body.title });
+    const slug = await generateUniqueSlug(body.title);
+    const blog = await Blog.create({ ...body, slug });
 
     return NextResponse.json(blog);
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating blog:", error);
     return NextResponse.json({ error: "مشکل در ایجاد بلاگ" }, { status: 500 });
   }

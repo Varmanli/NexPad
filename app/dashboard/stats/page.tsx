@@ -13,10 +13,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { FaChartBar, FaEye, FaBlog, FaTags } from "react-icons/fa";
+import { FaChartBar, FaEye, FaBlog, FaTags, FaEnvelope } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 
-// ثبت کامپوننت‌های Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -25,13 +24,14 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 interface Stats {
   totalViews: number;
   totalBlogs: number;
   totalCategories: number;
+  totalMessages: number;
   monthlyViews: number[];
   monthlyBlogs: number[];
 }
@@ -56,31 +56,22 @@ export default function StatsPage() {
 
   if (loading)
     return (
-      <p className="p-6 text-center text-gray-700 dark:text-gray-300">
+      <p className="p-6 text-center text-text-muted">
         در حال بارگذاری آمار...
       </p>
     );
 
   if (!stats)
     return (
-      <p className="p-6 text-center text-red-600 dark:text-red-400">
+      <p className="p-6 text-center text-danger">
         امکان بارگذاری آمار وجود ندارد.
       </p>
     );
 
   const months = [
-    "فروردین",
-    "اردیبهشت",
-    "خرداد",
-    "تیر",
-    "مرداد",
-    "شهریور",
-    "مهر",
-    "آبان",
-    "آذر",
-    "دی",
-    "بهمن",
-    "اسفند",
+    "فروردین", "اردیبهشت", "خرداد", "تیر",
+    "مرداد", "شهریور", "مهر", "آبان",
+    "آذر", "دی", "بهمن", "اسفند",
   ];
 
   const barData = {
@@ -89,7 +80,7 @@ export default function StatsPage() {
       {
         label: "تعداد بازدیدها",
         data: stats.monthlyViews,
-        backgroundColor: "#00FF99",
+        backgroundColor: "rgba(22, 242, 164, 0.8)",
         borderRadius: 6,
       },
     ],
@@ -101,8 +92,8 @@ export default function StatsPage() {
       {
         label: "تعداد بلاگ‌ها",
         data: stats.monthlyBlogs,
-        borderColor: "#FFAB00",
-        backgroundColor: "rgba(255, 171, 0, 0.2)",
+        borderColor: "rgb(139, 92, 246)",
+        backgroundColor: "rgba(139, 92, 246, 0.15)",
         tension: 0.4,
         fill: true,
         pointRadius: 5,
@@ -114,138 +105,57 @@ export default function StatsPage() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        labels: {
-          color: "var(--tw-text-opacity)", // هماهنگ با Tailwind
-        },
-      },
-      tooltip: {
-        mode: "index" as const,
-        intersect: false,
-      },
-      title: {
-        display: false,
-      },
+      legend: { labels: { color: "#A7B0C3" } },
+      tooltip: { mode: "index" as const, intersect: false },
+      title: { display: false },
     },
     scales: {
       x: {
-        ticks: { color: "var(--tw-text-opacity)" },
-        grid: { color: "rgba(200,200,200,0.1)" },
+        ticks: { color: "#A7B0C3" },
+        grid: { color: "rgba(37, 43, 70, 0.8)" },
       },
       y: {
-        ticks: { color: "var(--tw-text-opacity)" },
-        grid: { color: "rgba(200,200,200,0.1)" },
+        ticks: { color: "#A7B0C3" },
+        grid: { color: "rgba(37, 43, 70, 0.8)" },
       },
     },
   };
 
   return (
-    <main className="p-6 min-h-screen text-gray-900 dark:text-gray-100">
-      <h1 className="text-3xl font-bold mb-6 text-primary dark:text-accent">
-        آمار و گزارش‌ها
-      </h1>
-
-      {/* کارت‌های آمار */}
+    <main className="p-6 min-h-screen text-text">
+      {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[
-          {
-            icon: (
-              <FaEye className="text-5xl text-primary dark:text-accent mb-3" />
-            ),
-            title: "تعداد بازدیدها",
-            value: stats.totalViews.toLocaleString(),
-          },
-          {
-            icon: (
-              <FaBlog className="text-5xl text-primary dark:text-accent mb-3" />
-            ),
-            title: "تعداد بلاگ‌ها",
-            value: stats.totalBlogs,
-          },
-          {
-            icon: (
-              <FaTags className="text-5xl text-primary dark:text-accent mb-3" />
-            ),
-            title: "تعداد دسته‌بندی‌ها",
-            value: stats.totalCategories,
-          },
-          {
-            icon: (
-              <FaChartBar className="text-5xl text-primary dark:text-accent mb-3" />
-            ),
-            title: "نمودارهای تحلیلی",
-            value: "فعال",
-          },
+          { icon: <FaEye className="text-5xl text-primary mb-3" />, title: "تعداد بازدیدها", value: stats.totalViews.toLocaleString() },
+          { icon: <FaBlog className="text-5xl text-secondary mb-3" />, title: "تعداد بلاگ‌ها", value: stats.totalBlogs },
+          { icon: <FaTags className="text-5xl text-accent mb-3" />, title: "تعداد دسته‌بندی‌ها", value: stats.totalCategories },
+          { icon: <FaEnvelope className="text-5xl text-warning mb-3" />, title: "پیام‌های دریافتی", value: stats.totalMessages },
         ].map((card, idx) => (
           <div
             key={idx}
-            className="bg-white dark:bg-[#1e1e22] p-6 rounded-2xl shadow flex flex-col items-center transition-all hover:shadow-lg"
+            className="bg-surface p-6 rounded-2xl shadow-sm border border-border flex flex-col items-center transition-all hover:shadow-md"
           >
             {card.icon}
-            <h2 className="text-lg font-semibold mb-1">{card.title}</h2>
-            <p className="text-3xl font-bold">{card.value}</p>
+            <h2 className="text-lg font-semibold text-text mb-1">{card.title}</h2>
+            <p className="text-3xl font-bold text-text">{card.value}</p>
           </div>
         ))}
       </div>
 
-      {/* نمودارها */}
+      {/* Charts */}
       <div className="flex flex-col gap-8">
-        {/* نمودار بازدیدها */}
-        <div className="bg-white dark:bg-[#1e1e22] p-14 rounded-2xl shadow transition-all hover:shadow-lg w-full h-[450px]">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+        <div className="bg-surface p-14 rounded-2xl shadow-sm border border-border transition-all hover:shadow-md w-full h-[450px]">
+          <h2 className="text-xl font-semibold mb-4 text-text">
             تعداد بازدیدها (ماهانه)
           </h2>
-          <Bar
-            data={barData}
-            options={{
-              ...chartOptions,
-              plugins: {
-                ...chartOptions.plugins,
-                legend: {
-                  labels: { color: "#fff" }, // حالت روشن
-                },
-              },
-              scales: {
-                x: {
-                  ticks: { color: "#fff" },
-                  grid: { color: "rgba(200,200,200,0.2)" },
-                },
-                y: {
-                  ticks: { color: "#fff" },
-                  grid: { color: "rgba(200,200,200,0.2)" },
-                },
-              },
-            }}
-          />
+          <Bar data={barData} options={chartOptions} />
         </div>
 
-        {/* نمودار بلاگ‌ها */}
-        <div className="bg-white dark:bg-[#1e1e22] p-14 rounded-2xl shadow transition-all hover:shadow-lg w-full h-[450px]">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+        <div className="bg-surface p-14 rounded-2xl shadow-sm border border-border transition-all hover:shadow-md w-full h-[450px]">
+          <h2 className="text-xl font-semibold mb-4 text-text">
             تعداد بلاگ‌ها (ماهانه)
           </h2>
-          <Line
-            data={lineData}
-            options={{
-              ...chartOptions,
-              plugins: {
-                ...chartOptions.plugins,
-                legend: {
-                  labels: { color: "#fff" },
-                },
-              },
-              scales: {
-                x: {
-                  ticks: { color: "#fff" },
-                  grid: { color: "rgba(200,200,200,0.2)" },
-                },
-                y: {
-                  ticks: { color: "#fff" },
-                  grid: { color: "rgba(200,200,200,0.2)" },
-                },
-              },
-            }}
-          />
+          <Line data={lineData} options={chartOptions} />
         </div>
       </div>
     </main>

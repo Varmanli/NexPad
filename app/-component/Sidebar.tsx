@@ -2,147 +2,169 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
-  FaPlus,
-  FaList,
   FaChartBar,
   FaTags,
   FaBars,
   FaTimes,
   FaHome,
-  FaBook,
   FaChevronDown,
   FaChevronUp,
+  FaEnvelope,
+  FaFileAlt,
+  FaPlusCircle,
+  FaSignOutAlt,
 } from "react-icons/fa";
-import { MdOutlineMessage } from "react-icons/md";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [openMenu, setOpenMenu] = useState<null | "blog" | "course">(null);
+  const [blogOpen, setBlogOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
 
   const toggleSidebar = () => setIsOpen((prev) => !prev);
-  const toggleMenu = (menu: "blog" | "course") => {
-    setOpenMenu((prev) => (prev === menu ? null : menu));
-  };
 
-  const linkClasses =
-    "flex items-center justify-between px-4 py-3 rounded-lg transition-all hover:bg-accent/20 dark:hover:bg-[#00FF9920] hover:shadow-lg font-medium";
+  const linkBase =
+    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm";
+  const activeLink = "bg-primary/15 text-primary shadow-sm";
+  const inactiveLink =
+    "text-text-muted hover:bg-surface-hover hover:text-text";
 
-  const subLinkClasses =
-    "flex items-center gap-2 pr-10 py-2 rounded-lg transition-all hover:bg-accent/10 dark:hover:bg-[#00FF9920] ";
+  function isActive(href: string) {
+    return pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    toast.success("خروج موفق");
+    router.push("/auth/login");
+  }
+
+  const navItems = [
+    { href: "/dashboard", label: "داشبورد", icon: <FaHome size={16} /> },
+    { href: "/dashboard/message", label: "پیام‌ها", icon: <FaEnvelope size={16} /> },
+    { href: "/dashboard/stats", label: "آمار و تحلیل", icon: <FaChartBar size={16} /> },
+  ];
+
+  const blogSubItems = [
+    { href: "/dashboard/posts", label: "لیست مقالات", icon: <FaFileAlt size={14} /> },
+    { href: "/dashboard/posts/create", label: "مقاله جدید", icon: <FaPlusCircle size={14} /> },
+    { href: "/dashboard/categories", label: "دسته‌بندی‌ها", icon: <FaTags size={14} /> },
+  ];
 
   return (
     <div className="flex">
-      {/* دکمه همبرگری */}
+      {/* hamburger for mobile */}
       <button
         onClick={toggleSidebar}
-        className="p-4 text-primary dark:text-accent md:hidden focus:outline-none focus:ring-2 focus:ring-accent rounded-lg"
+        className="p-4 text-text-muted md:hidden focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg"
+        aria-label="Toggle menu"
       >
-        {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        {isOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
       </button>
 
-      {/* سایدبار */}
+      {/* backdrop for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-10 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+
       <aside
         className={`
-          fixed md:static top-0 left-0 h-full w-64 p-6
-          bg-white dark:bg-[#1e1e22] text-gray-700 dark:text-gray-300
-          shadow-lg md:shadow-none rounded-tr-2xl rounded-br-2xl
-          transition-transform duration-500 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
+          fixed md:static top-0 right-0 z-20 h-full w-64 flex flex-col
+          bg-surface border-l border-border
+          shadow-xl md:shadow-none
+          transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "translate-x-full"} md:translate-x-0
         `}
       >
-        <h1 className="text-2xl font-bold mb-8 text-center text-accent dark:text-[#00FF99]">
-          داشبورد مدیریت
-        </h1>
+        {/* header */}
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-md">
+              <FaHome className="text-black" size={16} />
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-text leading-tight">
+                پنل مدیریت
+              </h1>
+              <p className="text-xs text-text-soft">NexPad Admin</p>
+            </div>
+          </div>
+        </div>
 
-        <ul className="space-y-3">
-          <li>
-            <Link href="/dashboard" className={linkClasses}>
-              صفحه اصلی
-            </Link>
-          </li>
-
-          {/* وبلاگ */}
-          <li>
-            <button
-              onClick={() => toggleMenu("blog")}
-              className={linkClasses + " w-full text-left"}
+        {/* nav */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setIsOpen(false)}
+              className={`${linkBase} ${isActive(item.href) ? activeLink : inactiveLink}`}
             >
-              <span className="flex items-center gap-3">مدیریت وبلاگ</span>
-              {openMenu === "blog" ? (
-                <FaChevronUp className="text-gray-500 dark:text-gray-300" />
-              ) : (
-                <FaChevronDown className="text-gray-500 dark:text-gray-300" />
-              )}
-            </button>
-            {openMenu === "blog" && (
-              <ul className="mt-1 bg-[#0F0F20] rounded-md">
-                {[
-                  {
-                    href: "/dashboard/posts",
-                    label: "لیست بلاگ‌ها",
-                  },
-                  {
-                    href: "/dashboard/posts/create",
-                    label: "افزودن بلاگ",
-                  },
-                  {
-                    href: "/dashboard/categories",
-                    label: "دسته‌بندی‌ها",
-                  },
-                ].map((item, i) => (
-                  <li key={i} className={subLinkClasses}>
-                    <Link href={item.href}>{item.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
 
-          {/* دوره‌ها */}
-          <li>
+          {/* blog collapsible */}
+          <div>
             <button
-              onClick={() => toggleMenu("course")}
-              className={linkClasses + " w-full text-left"}
+              onClick={() => setBlogOpen((p) => !p)}
+              className={`${linkBase} w-full justify-between ${
+                pathname.startsWith("/dashboard/posts") || pathname.startsWith("/dashboard/categories")
+                  ? activeLink
+                  : inactiveLink
+              }`}
             >
-              <span className="flex items-center gap-3">مدیریت دوره‌ها</span>
-              {openMenu === "course" ? (
-                <FaChevronUp className="text-gray-500 dark:text-gray-300" />
-              ) : (
-                <FaChevronDown className="text-gray-500 dark:text-gray-300" />
-              )}
+              <span className="flex items-center gap-3">
+                <FaFileAlt size={16} />
+                مدیریت محتوا
+              </span>
+              {blogOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
             </button>
-            {openMenu === "course" && (
-              <ul className="mt-1 bg-[#0F0F20] rounded-md">
-                {[
-                  {
-                    href: "/dashboard/courses",
-                    label: "لیست دوره‌ها",
-                  },
-                  {
-                    href: "/dashboard/courses/create",
-                    label: "افزودن دوره",
-                  },
-                ].map((item, i) => (
-                  <li key={i} className={subLinkClasses}>
-                    <Link href={item.href}>{item.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
 
-          <li>
-            <Link href="/dashboard/message" className={linkClasses}>
-              پیغام‌ها
-            </Link>
-          </li>
-          <li>
-            <Link href="/dashboard/stats" className={linkClasses}>
-              آمار و گزارش‌ها
-            </Link>
-          </li>
-        </ul>
+            {blogOpen && (
+              <div className="mt-1 mr-3 space-y-1 border-r-2 border-primary/30 pr-3">
+                {blogSubItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`${linkBase} text-xs ${isActive(item.href) ? activeLink : inactiveLink}`}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* footer */}
+        <div className="p-4 border-t border-border">
+          <a
+            href="/"
+            target="_blank"
+            className="flex items-center gap-3 px-4 py-2 rounded-xl text-sm text-text-muted hover:bg-surface-hover transition-all mb-2"
+          >
+            <FaHome size={14} />
+            مشاهده سایت
+          </a>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-4 py-2 rounded-xl text-sm text-danger hover:bg-danger/10 transition-all"
+          >
+            <FaSignOutAlt size={14} />
+            خروج از حساب
+          </button>
+        </div>
       </aside>
     </div>
   );

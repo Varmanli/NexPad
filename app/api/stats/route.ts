@@ -1,71 +1,66 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db"; // فایل اتصال MongoDB
+import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import Category from "@/models/Category";
+import Message from "@/models/Message";
 
 export async function GET() {
   try {
     await connectDB();
 
-    // تعداد کل بازدیدها
-    const totalViewsAgg = await Blog.aggregate([
-      { $group: { _id: null, totalViews: { $sum: "$views" } } },
-    ]);
+    const [totalViewsAgg, totalBlogs, totalCategories, totalMessages] =
+      await Promise.all([
+        Blog.aggregate([{ $group: { _id: null, totalViews: { $sum: "$views" } } }]),
+        Blog.countDocuments(),
+        Category.countDocuments(),
+        Message.countDocuments(),
+      ]);
+
     const totalViews = totalViewsAgg[0]?.totalViews || 0;
 
-    // تعداد کل بلاگ‌ها
-    const totalBlogs = await Blog.countDocuments();
-
-    // تعداد کل دسته‌بندی‌ها
-    const totalCategories = await Category.countDocuments();
-
-    // تعداد بازدید ماهانه (ماه جاری سال جاری)
-    const monthlyViewsAgg = await Blog.aggregate([
-      {
-        $group: {
-          _id: {
-            month: { $month: "$createdAt" },
-            year: { $year: "$createdAt" },
+    const [monthlyViewsAgg, monthlyBlogsAgg, topPosts] = await Promise.all([
+      Blog.aggregate([
+        {
+          $group: {
+            _id: { month: { $month: "$createdAt" }, year: { $year: "$createdAt" } },
+            views: { $sum: "$views" },
           },
-          views: { $sum: "$views" },
         },
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
+      ]),
+      Blog.aggregate([
+        {
+          $group: {
+            _id: { month: { $month: "$createdAt" }, year: { $year: "$createdAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
+      ]),
+      Blog.find({}, { title: 1, slug: 1, views: 1 })
+        .sort({ views: -1 })
+        .limit(5)
+        .lean(),
     ]);
 
-    // تعداد بلاگ ماهانه
-    const monthlyBlogsAgg = await Blog.aggregate([
-      {
-        $group: {
-          _id: {
-            month: { $month: "$createdAt" },
-            year: { $year: "$createdAt" },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
-    ]);
-
-    // Map aggregation به آرایه ساده (1 تا 12 ماه)
-    const months = Array.from({ length: 12 }, () => 0);
+    const monthlyViews = Array.from({ length: 12 }, () => 0);
     monthlyViewsAgg.forEach((item) => {
-      months[item._id.month - 1] = item.views;
+      monthlyViews[item._id.month - 1] = item.views;
     });
-    const monthlyViews = months;
 
-    const blogsPerMonth = Array.from({ length: 12 }, () => 0);
+    const monthlyBlogs = Array.from({ length: 12 }, () => 0);
     monthlyBlogsAgg.forEach((item) => {
-      blogsPerMonth[item._id.month - 1] = item.count;
+      monthlyBlogs[item._id.month - 1] = item.count;
     });
-    const monthlyBlogs = blogsPerMonth;
 
     return NextResponse.json({
       totalViews,
       totalBlogs,
       totalCategories,
+      totalMessages,
       monthlyViews,
       monthlyBlogs,
+      topPosts,
     });
   } catch (error) {
     console.error(error);

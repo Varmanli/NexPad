@@ -8,9 +8,7 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   // fetch سرور ساید
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/blogs/${
-      params.id
-    }`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${params.id}`,
     {
       cache: "no-store",
     }
@@ -24,7 +22,7 @@ export default async function Page({ params }: PageProps) {
   const { title, content, coverImage } = post;
 
   return (
-    <div className="min-h-[80vh] bg-background dark:bg-[#1c1c22] text-right text-gray-900 dark:text-gray-100 transition-all px-6 md:px-20 py-10 flex flex-col gap-10">
+    <div className="min-h-[80vh] bg-background text-right text-text transition-all px-6 md:px-20 py-10 flex flex-col gap-10">
       {/* تصویر اصلی */}
       {coverImage && (
         <div className="w-full h-[300px] md:h-[400px] relative overflow-hidden rounded-2xl">
@@ -38,7 +36,7 @@ export default async function Page({ params }: PageProps) {
       )}
 
       {/* عنوان */}
-      <h1 className="text-2xl md:text-4xl font-extrabold text-accent dark:text-[#00FF99]">
+      <h1 className="text-2xl md:text-4xl font-extrabold text-primary">
         {title}
       </h1>
 

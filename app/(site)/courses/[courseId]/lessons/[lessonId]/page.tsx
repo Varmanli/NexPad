@@ -106,7 +106,7 @@ export default function LessonPage() {
     <div className="min-h-screen w-full">
       <div className="flex flex-col-reverse md:flex-row-reverse h-full">
         {/* Left: content */}
-        <div className="flex-1 border border-zinc-200 bg-white p-4 shadow-sm transition dark:border-zinc-800 dark:bg-[#1e1e22]">
+        <div className="flex-1 border border-border bg-surface p-4 shadow-sm transition">
           <div className="mb-4 mr-9 md:mr-0">
             <LessonNavigation
               goToPrevLesson={goToPrevLesson}

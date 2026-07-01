@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Blog, { IBlog } from "@/models/Blog";
 import { Types } from "mongoose";
+import { generateUniqueSlug } from "@/lib/slugify";
 
 export async function GET(
   req: NextRequest,
@@ -10,11 +11,17 @@ export async function GET(
   try {
     await connectDB();
 
-    if (!Types.ObjectId.isValid(params.id)) {
-      return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+    let blog;
+
+    if (Types.ObjectId.isValid(params.id)) {
+      blog = await Blog.findById(params.id);
     }
 
-    const blog = await Blog.findById(params.id);
+    // Fall back to slug lookup if not found by ID or param isn't an ObjectId
+    if (!blog) {
+      blog = await Blog.findOne({ slug: params.id });
+    }
+
     if (!blog)
       return NextResponse.json({ error: "پست پیدا نشد" }, { status: 404 });
 
@@ -36,6 +43,15 @@ export async function PUT(
     }
 
     const body: Partial<IBlog> = await req.json();
+
+    // Re-generate slug only when title changes and no slug was explicitly provided
+    if (body.title && !body.slug) {
+      const current = await Blog.findById(params.id).lean() as (IBlog & { _id: Types.ObjectId }) | null;
+      if (current && current.title !== body.title) {
+        body.slug = await generateUniqueSlug(body.title, params.id);
+      }
+    }
+
     const updated = await Blog.findByIdAndUpdate(params.id, body, {
       new: true,
     });

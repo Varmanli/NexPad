@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
+    "@aws-sdk/lib-storage": "^3.1075.0",
     "@headlessui/react": "^2.2.0",
     "@next/font": "^14.2.7",
     "@react-icons/all-files": "^4.1.0",
@@ -24,12 +26,12 @@
     "@tiptap/starter-kit": "^3.4.2",
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.7",
-    "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "dompurify": "^3.2.6",
     "dotenv": "^17.2.2",
     "framer-motion": "^12.23.12",
     "html-react-parser": "^5.2.6",
+    "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.1",
     "next": "14.2.7",

@@ -13,7 +13,7 @@ interface EditPostPageProps {
  */
 async function getPost(id: string): Promise<IBlog | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     const res = await fetch(`${baseUrl}/api/blogs/${id}`, {
       cache: "no-store", 
     });
@@ -46,20 +46,5 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     notFound(); // نمایش صفحه 404
   }
 
-  return (
-    <div className="min-h-screen ">
-      <div className="container mx-auto py-8">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            ویرایش پست
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            پست {post.title} را ویرایش کنید
-          </p>
-        </header>
-
-        <PostForm mode="edit" post={post} />
-      </div>
-    </div>
-  );
+  return <PostForm mode="edit" post={post} />;
 }

@@ -144,9 +144,9 @@ export default function CategoryPage() {
       </div>
 
       {/* بک‌گراند گرادیانت */}
-      <div className="absolute top-1 left-[30%] w-72 h-72 md:w-[700px] md:h-[700px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
-      <div className="absolute top-1/4 left-0 w-72 h-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-25 blur-3xl pointer-events-none -z-10"></div>
-      <div className="absolute top-20 right-0 w-72 md:w-[400px] md:h-[400px] rounded-full bg-[#00FF99] opacity-20 blur-3xl pointer-events-none -z-10"></div>
+      <div className="absolute top-1 left-[30%] w-72 h-72 md:w-[700px] md:h-[700px] rounded-full bg-primary opacity-20 blur-3xl pointer-events-none -z-10"></div>
+      <div className="absolute top-1/4 left-0 w-72 h-72 md:w-[400px] md:h-[400px] rounded-full bg-primary opacity-20 blur-3xl pointer-events-none -z-10"></div>
+      <div className="absolute top-20 right-0 w-72 md:w-[400px] md:h-[400px] rounded-full bg-secondary opacity-15 blur-3xl pointer-events-none -z-10"></div>
     </section>
   );
 }

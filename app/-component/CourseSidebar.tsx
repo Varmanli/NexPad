@@ -59,8 +59,8 @@ export default function CourseSidebar({
                 p-3 rounded-lg cursor-pointer transition-colors select-none
                 ${
                   lesson.id === currentLessonId
-                    ? "bg-accent text-black shadow-md"
-                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    ? "bg-primary text-black shadow-md"
+                    : "text-text-soft hover:bg-surface-hover hover:text-text"
                 }
               `}
             >

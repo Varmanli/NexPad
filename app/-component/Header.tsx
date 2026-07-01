@@ -10,9 +10,11 @@ import logo from "@/public/logo.png";
 
 export default function Header() {
   const themeContext = useContext(ThemeContext);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [categories, setCategories] = useState<ICategory[]>([]);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const theme = themeContext?.theme;
   const toggleTheme = themeContext?.toggleTheme;
@@ -20,12 +22,7 @@ export default function Header() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`,
-          {
-            cache: "no-store",
-          }
-        );
+        const res = await fetch("/api/categories", { cache: "no-store" });
         if (!res.ok) throw new Error("خطا در دریافت دسته‌بندی‌ها");
         const data = await res.json();
         setCategories(data);
@@ -36,178 +33,276 @@ export default function Header() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 16);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   if (!themeContext) return null;
 
+  const navLinks = [
+    { href: "/", label: "صفحه اصلی" },
+    { href: "/about", label: "درباره ما" },
+    { href: "/contact", label: "تماس با ما" },
+  ];
+
   return (
-    <header className="flex flex-row-reverse justify-between z-20 items-center px-5 py-5 relative md:mx-10">
-      <Link href="/" className="flex items-center">
-        <Image src={logo} alt="logo" width={150} />
-      </Link>
+    <>
+      <header
+        dir="rtl"
+        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+          isScrolled
+            ? "border-b border-border bg-surface/80 shadow-sm backdrop-blur-2xl"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-20 items-center justify-between gap-4">
+            {/* Logo */}
+            <Link href="/" className="group flex items-center" aria-label="صفحه اصلی">
+              <span
+                className={`relative flex h-14 w-[160px] items-center justify-center overflow-hidden rounded-2xl border px-4 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg ${
+                  theme === "dark"
+                    ? "border-border-soft bg-surface-soft shadow-[0_8px_30px_rgba(0,0,0,0.22)]"
+                    : "border-border bg-slate-900 shadow-[0_10px_30px_rgba(15,23,42,0.18)]"
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+                <Image
+                  src={logo}
+                  alt="Nexpad logo"
+                  width={140}
+                  priority
+                  className="relative z-10 h-auto w-full object-contain"
+                />
+              </span>
+            </Link>
 
-      {/* منوی دسکتاپ */}
-      <ul className="hidden md:flex items-center gap-6 font-medium text-gray-700 dark:text-gray-300">
-        <li>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full bg-gray-700 text-yellow-300 hover:bg-gray-600 transition"
-          >
-            {theme === "dark" ? <FaSun size={24} /> : <FaMoon size={24} />}
-          </button>
-        </li>
+            {/* Desktop Navigation */}
+            <nav className="hidden items-center rounded-full border border-border bg-surface/70 px-2 py-2 shadow-sm backdrop-blur-xl md:flex">
+              <Link
+                href="/"
+                className="rounded-full px-4 py-2 text-sm font-bold text-text-muted transition-all hover:bg-primary-soft hover:text-primary"
+              >
+                صفحه اصلی
+              </Link>
 
-        <li>
-          <Link
-            href="/"
-            className="hover:text-blue-600 text-lg dark:hover:text-accent font-semibold transition-all"
-          >
-            صفحه اصلی
-          </Link>
-        </li>
+              {/* Blogs Dropdown */}
+              <div className="group relative">
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-text-muted transition-all hover:bg-primary-soft hover:text-primary"
+                >
+                  مقالات
+                  <FaChevronDown size={12} className="transition-transform duration-300 group-hover:rotate-180" />
+                </button>
 
-        <li className="relative group text-lg">
-          <button className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-accent font-semibold transition-all">
-            مقالات <FaChevronDown size={14} />
-          </button>
-          <ul className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-            <li>
+                <div className="invisible absolute right-0 top-full mt-3 w-64 translate-y-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="overflow-hidden rounded-3xl border border-border bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
+                    <Link
+                      href="/blogs"
+                      className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-text transition-all hover:bg-primary-soft hover:text-primary"
+                    >
+                      همه مقالات
+                      <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">همه</span>
+                    </Link>
+
+                    <div className="my-2 h-px bg-border" />
+
+                    <div className="max-h-72 overflow-y-auto">
+                      {categories.length > 0 ? (
+                        categories.map((cat) => (
+                          <Link
+                            key={String(cat._id)}
+                            href={`/blogs/category/${cat._id}`}
+                            className="block rounded-2xl px-4 py-3 text-sm font-medium text-text-muted transition-all hover:bg-surface-hover hover:text-text"
+                          >
+                            {cat.name}
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="px-4 py-3 text-sm text-text-soft">دسته‌بندی‌ای یافت نشد</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {navLinks.slice(1).map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-full px-4 py-2 text-sm font-bold text-text-muted transition-all hover:bg-primary-soft hover:text-primary"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                type="button"
+                aria-label="تغییر حالت نمایش"
+                className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-surface/80 text-text-muted shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary-soft hover:text-primary"
+              >
+                {theme === "dark" ? <FaSun size={18} /> : <FaMoon size={18} />}
+              </button>
+
               <Link
                 href="/blogs"
-                className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="hidden rounded-2xl bg-primary px-5 py-3 text-sm font-black text-black shadow-lg shadow-primary/20 transition-all duration-200 hover:-translate-y-0.5 hover:opacity-90 sm:inline-flex"
               >
-                همه مقالات
+                خواندن مقالات
               </Link>
-            </li>
-            {categories.map((cat) => (
-              <li key={String(cat._id)}>
-                <Link
-                  href={`/blogs/category/${cat._id}`}
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  {cat.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </li>
 
-        <li>
-          <Link
-            href="/about"
-            className="hover:text-blue-600 dark:hover:text-accent text-lg font-semibold transition-all"
-          >
-            درباره ما
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/contact"
-            className="hover:text-blue-600 dark:hover:text-accent text-lg font-semibold transition-all"
-          >
-            تماس با ما
-          </Link>
-        </li>
-      </ul>
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                type="button"
+                aria-label="باز کردن منو"
+                className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-surface/80 text-text-muted shadow-sm transition-all duration-200 hover:bg-surface-hover md:hidden"
+              >
+                <FaBars size={19} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      {/* منوی موبایل */}
-      <button
-        onClick={() => setIsMenuOpen((prev) => !prev)}
-        className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:scale-110 transition-transform"
-        aria-label="باز و بسته کردن منو"
-      >
-        {isMenuOpen ? (
-          <FaTimes size={28} className="text-red-500" />
-        ) : (
-          <FaBars size={28} className="text-green-500 dark:text-accent" />
-        )}
-      </button>
-
+      {/* Mobile Backdrop */}
       <div
-        className={`fixed top-0 right-0 h-screen w-3/4 max-w-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col items-start justify-center z-50 gap-6 p-6 transition-transform duration-300 ease-in-out shadow-lg ${
+        onClick={() => setIsMenuOpen(false)}
+        className={`fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          isMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      {/* Mobile Drawer */}
+      <aside
+        dir="rtl"
+        className={`fixed right-0 top-0 z-[70] h-dvh w-[86%] max-w-sm transform overflow-y-auto border-l border-border bg-surface p-5 shadow-2xl transition-transform duration-300 md:hidden ${
           isMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <button
-          onClick={() => setIsMenuOpen(false)}
-          className="absolute top-5 right-5 text-red-500 hover:text-white p-2 rounded-full hover:bg-red-600 transition-all"
-        >
-          <FaTimes size={28} />
-        </button>
-
-        <Link
-          href="/"
-          className="text-xl font-bold hover:text-accent transition-colors"
-          onClick={() => setIsMenuOpen(false)}
-        >
-          صفحه اصلی
-        </Link>
-
-        {/* دراپ‌داون موبایل */}
-        <div className="h-7 text-left relative">
-          <button
-            onClick={() => setIsDropdownOpen((prev) => !prev)}
-            className="flex items-center justify-between w-full text-xl font-semibold hover:text-accent transition-colors"
+        <div className="mb-8 flex items-center justify-between">
+          <Link
+            href="/"
+            onClick={() => setIsMenuOpen(false)}
+            className="group relative flex h-12 w-36 items-center justify-center overflow-hidden rounded-2xl border px-3 border-border bg-slate-900 shadow-lg transition-all duration-300 hover:-translate-y-0.5"
           >
-            مقالات
-            <FaChevronDown
-              size={16}
-              className={`transform transition-transform duration-300 ${
-                isDropdownOpen ? "rotate-180" : ""
-              }`}
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-primary/10" />
+            <Image
+              src={logo}
+              alt="logo"
+              width={140}
+              priority
+              className="relative z-10 h-auto w-full object-contain"
             />
-          </button>
-          <div
-            className={` bg-white dark:bg-gray-900 shadow-md rounded-md overflow-hidden transform transition-all duration-300 origin-top text-right ${
-              isDropdownOpen ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"
-            }`}
+          </Link>
+
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            type="button"
+            aria-label="بستن منو"
+            className="grid h-11 w-11 place-items-center rounded-2xl bg-danger/10 text-danger transition-all hover:bg-danger/20"
           >
-            <Link
-              href="/blogs"
-              onClick={() => {
-                setIsMenuOpen(false);
-                setIsDropdownOpen(false);
-              }}
-              className="block py-2  text-sm hover:text-accent transition-colors"
+            <FaTimes size={18} />
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <Link
+            href="/"
+            onClick={() => setIsMenuOpen(false)}
+            className="block rounded-2xl px-4 py-3 text-base font-black text-text transition-all hover:bg-primary-soft hover:text-primary"
+          >
+            صفحه اصلی
+          </Link>
+
+          <div className="rounded-3xl border border-border bg-surface-soft p-2">
+            <button
+              onClick={() => setIsDropdownOpen((prev) => !prev)}
+              type="button"
+              className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-base font-black text-text transition-all hover:bg-surface-hover"
             >
-              همه مقالات
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={String(cat._id)}
-                href={`/blogs/category/${cat._id}`}
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  setIsDropdownOpen(false);
-                }}
-                className="block py-2 text-sm hover:text-accent transition-colors"
-              >
-                {cat.name}
-              </Link>
-            ))}
+              <span>مقالات</span>
+              <FaChevronDown
+                size={13}
+                className={`transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            <div
+              className={`grid transition-all duration-300 ${
+                isDropdownOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="mt-2 space-y-1 border-t border-border pt-2">
+                  <Link
+                    href="/blogs"
+                    onClick={() => { setIsMenuOpen(false); setIsDropdownOpen(false); }}
+                    className="block rounded-2xl px-4 py-3 text-sm font-bold text-text-muted transition-all hover:bg-surface-hover hover:text-primary"
+                  >
+                    همه مقالات
+                  </Link>
+
+                  {categories.map((cat) => (
+                    <Link
+                      key={String(cat._id)}
+                      href={`/blogs/category/${cat._id}`}
+                      onClick={() => { setIsMenuOpen(false); setIsDropdownOpen(false); }}
+                      className="block rounded-2xl px-4 py-3 text-sm font-medium text-text-muted transition-all hover:bg-surface-hover hover:text-text"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+
+          <Link
+            href="/about"
+            onClick={() => setIsMenuOpen(false)}
+            className="block rounded-2xl px-4 py-3 text-base font-black text-text transition-all hover:bg-primary-soft hover:text-primary"
+          >
+            درباره ما
+          </Link>
+
+          <Link
+            href="/contact"
+            onClick={() => setIsMenuOpen(false)}
+            className="block rounded-2xl px-4 py-3 text-base font-black text-text transition-all hover:bg-primary-soft hover:text-primary"
+          >
+            تماس با ما
+          </Link>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-border bg-surface-soft p-4">
+          <p className="mb-3 text-sm font-bold text-text-muted">تنظیمات نمایش</p>
+
+          <button
+            onClick={toggleTheme}
+            type="button"
+            className="flex w-full items-center justify-between rounded-2xl bg-surface px-4 py-3 text-sm font-black text-text shadow-sm transition-all hover:bg-primary-soft hover:text-primary"
+          >
+            <span>{theme === "dark" ? "حالت روشن" : "حالت تاریک"}</span>
+            {theme === "dark" ? <FaSun size={18} /> : <FaMoon size={18} />}
+          </button>
         </div>
 
         <Link
-          href="/about"
-          className="text-xl font-bold hover:text-accent transition-colors"
+          href="/blogs"
           onClick={() => setIsMenuOpen(false)}
+          className="mt-6 flex w-full items-center justify-center rounded-2xl bg-primary px-5 py-4 text-sm font-black text-black shadow-lg shadow-primary/20 transition-all hover:opacity-90"
         >
-          درباره ما
+          رفتن به مقالات
         </Link>
-        <Link
-          href="/contact"
-          className="text-xl font-bold hover:text-accent transition-colors"
-          onClick={() => setIsMenuOpen(false)}
-        >
-          تماس با ما
-        </Link>
-
-        <button
-          onClick={toggleTheme}
-          className="p-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-yellow-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-        >
-          {theme === "dark" ? <FaSun size={24} /> : <FaMoon size={24} />}
-        </button>
-      </div>
-    </header>
+      </aside>
+    </>
   );
 }

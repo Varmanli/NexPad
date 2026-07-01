@@ -6,10 +6,9 @@ import { FaArrowUp } from "react-icons/fa";
 export default function ScrollToTop() {
   const [visible, setVisible] = useState(false);
 
-  // بررسی موقعیت اسکرول
   useEffect(() => {
     const handleScroll = () => {
-      setVisible(window.scrollY > 300); // بعد از 300px دکمه نمایش داده می‌شود
+      setVisible(window.scrollY > 300);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -22,9 +21,9 @@ export default function ScrollToTop() {
   return (
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-8 right-8 md:right-12 z-50 p-4 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 shadow-lg text-white text-xl transition-transform duration-300 ${
-        visible ? "scale-100 opacity-100" : "scale-0 opacity-0"
-      } hover:scale-110 `}
+      className={`scroll-to-top-global fixed bottom-6 right-6 z-[9990] p-3 rounded-full bg-gradient-to-tr from-secondary via-accent to-primary shadow-lg text-white text-base transition-all duration-300 ${
+        visible ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"
+      } hover:scale-110`}
       aria-label="بازگشت به بالا"
     >
       <FaArrowUp />
