@@ -6,7 +6,6 @@ import { useState, useEffect, useContext } from "react";
 import { FaSun, FaMoon, FaBars, FaTimes, FaChevronDown } from "react-icons/fa";
 import { ThemeContext } from "../context/ThemeProvider";
 import { ICategory } from "@/models/Category";
-import logo from "@/public/logo.png";
 
 export default function Header() {
   const themeContext = useContext(ThemeContext);
@@ -71,9 +70,10 @@ export default function Header() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
                 <Image
-                  src={logo}
+                  src="/logo.png"
                   alt="Nexpad logo"
                   width={140}
+                  height={36}
                   priority
                   className="relative z-10 h-auto w-full object-contain"
                 />
@@ -195,9 +195,10 @@ export default function Header() {
           >
             <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-primary/10" />
             <Image
-              src={logo}
+              src="/logo.png"
               alt="logo"
               width={140}
+              height={36}
               priority
               className="relative z-10 h-auto w-full object-contain"
             />
