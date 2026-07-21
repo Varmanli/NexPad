@@ -13,6 +13,7 @@ import {
   FaSortAmountUp,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { blogPath } from "@/lib/slugify";
 
 interface Post {
   _id: string;
@@ -299,7 +300,7 @@ export default function ManagePostsPage() {
                     </button>
                   </Link>
                   <Link
-                    href={`/blogs/${post.slug || post._id}`}
+                    href={blogPath(post.slug)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

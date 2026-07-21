@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Blog, { IBlog } from "@/models/Blog";
 import { Types } from "mongoose";
-import { generateUniqueSlug } from "@/lib/slugify";
+import { decodeBlogParam, slugify } from "@/lib/slugify";
 
 export async function GET(
   req: NextRequest,
@@ -11,6 +11,7 @@ export async function GET(
   try {
     await connectDB();
 
+    const slug = decodeBlogParam(params.id);
     let blog;
 
     if (Types.ObjectId.isValid(params.id)) {
@@ -19,7 +20,9 @@ export async function GET(
 
     // Fall back to slug lookup if not found by ID or param isn't an ObjectId
     if (!blog) {
-      blog = await Blog.findOne({ slug: params.id });
+      blog = await Blog.findOne({
+        $or: [{ slug }, { legacySlugs: slug }],
+      });
     }
 
     if (!blog)
@@ -43,24 +46,45 @@ export async function PUT(
     }
 
     const body: Partial<IBlog> = await req.json();
+    const current = await Blog.findById(params.id);
+    if (!current)
+      return NextResponse.json({ error: "پست پیدا نشد" }, { status: 404 });
 
-    // Re-generate slug only when title changes and no slug was explicitly provided
-    if (body.title && !body.slug) {
-      const current = await Blog.findById(params.id).lean() as (IBlog & { _id: Types.ObjectId }) | null;
-      if (current && current.title !== body.title) {
-        body.slug = await generateUniqueSlug(body.title, params.id);
+    // slug and legacySlugs are never accepted from the client.
+    delete body.slug;
+    delete body.legacySlugs;
+
+    if (body.title !== undefined) {
+      if (typeof body.title !== "string" || !slugify(body.title)) {
+        return NextResponse.json({ error: "title الزامی است" }, { status: 400 });
       }
+      const title = slugify(body.title);
+      if (title !== current.title) {
+        if (current.slug && current.slug !== title) {
+          current.legacySlugs = Array.from(
+            new Set([...(current.legacySlugs || []), current.slug])
+          );
+        }
+        current.title = title;
+        current.slug = title;
+      }
+      delete body.title;
     }
 
-    const updated = await Blog.findByIdAndUpdate(params.id, body, {
-      new: true,
-    });
+    Object.assign(current, body);
+    const updated = await current.save();
 
     if (!updated)
       return NextResponse.json({ error: "پست پیدا نشد" }, { status: 404 });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch (error: unknown) {
+    if ((error as { code?: number }).code === 11000) {
+      return NextResponse.json(
+        { error: "عنوان مقاله باید یکتا باشد، چون URL دقیقاً برابر عنوان است" },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { error: "مشکل در بروزرسانی بلاگ" },
       { status: 500 }

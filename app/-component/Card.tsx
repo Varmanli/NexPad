@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Button from "./Buttoon";
+import { blogPath } from "@/lib/slugify";
 
 interface CardProps {
   id: string;
@@ -19,7 +20,7 @@ export default function Card({
   buttonText = "مشاهده",
   itemType = "course",
 }: CardProps) {
-  const href = itemType === "course" ? `/courses/${id}` : `/blogs/${id}`;
+  const href = itemType === "course" ? `/courses/${id}` : blogPath(id);
 
   return (
     <Link href={href} className="group relative block">

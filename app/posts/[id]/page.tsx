@@ -1,5 +1,6 @@
 import Image from "next/image";
 import parse from "html-react-parser";
+import { blogApiPath } from "@/lib/slugify";
 
 interface PageProps {
   params: { id: string };
@@ -8,7 +9,7 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   // fetch سرور ساید
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${params.id}`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}${blogApiPath(params.id)}`,
     {
       cache: "no-store",
     }

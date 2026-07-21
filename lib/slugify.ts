@@ -1,55 +1,32 @@
-const persianMap: Record<string, string> = {
-  آ: "a", ا: "a", أ: "a", إ: "a", ب: "b", پ: "p", ت: "t", ث: "s",
-  ج: "j", چ: "ch", ح: "h", خ: "kh", د: "d", ذ: "z", ر: "r", ز: "z",
-  ژ: "zh", س: "s", ش: "sh", ص: "s", ض: "z", ط: "t", ظ: "z", ع: "a",
-  غ: "gh", ف: "f", ق: "gh", ک: "k", گ: "g", ل: "l", م: "m", ن: "n",
-  و: "v", ه: "h", ی: "y", ئ: "y", ء: "", ة: "h", ؤ: "v",
-  "ـ": "", "ً": "", "ٌ": "", "ٍ": "", "َ": "",
-  "ُ": "", "ِ": "", "ّ": "", "ْ": "",
-  "‌": "-", "‍": "",
-};
-
-export function slugify(text: string): string {
-  let s = text.trim().toLowerCase();
-
-  // Replace Persian/Arabic characters
-  for (const [char, latin] of Object.entries(persianMap)) {
-    s = s.split(char).join(latin);
-  }
-
-  // Spaces and separators → hyphens
-  s = s.replace(/[\s_/\\]+/g, "-");
-
-  // Strip anything that's not alphanumeric or hyphen
-  s = s.replace(/[^a-z0-9-]/g, "");
-
-  // Collapse multiple hyphens, trim edges
-  s = s.replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
-
-  return s || "post";
+/**
+ * A blog slug is deliberately not a conventional URL slug.  It is the exact
+ * stored title, which keeps Persian, Unicode, whitespace, and punctuation
+ * intact.  URL encoding happens only at the routing boundary.
+ */
+export function slugify(title: string): string {
+  return title.trim();
 }
 
-import Blog from "@/models/Blog";
-import { Types } from "mongoose";
-
-export async function generateUniqueSlug(
-  title: string,
-  excludeId?: string
-): Promise<string> {
-  const base = slugify(title);
-  let slug = base;
-  let counter = 2;
-
-  while (true) {
-    const query: Record<string, unknown> = { slug };
-    if (excludeId && Types.ObjectId.isValid(excludeId)) {
-      query._id = { $ne: new Types.ObjectId(excludeId) };
-    }
-    const existing = await Blog.findOne(query).lean();
-    if (!existing) break;
-    slug = `${base}-${counter}`;
-    counter++;
+/** Decode a route parameter once. Next normally supplies decoded params, but
+ * this also handles params passed through a pre-encoded client href. */
+export function decodeBlogParam(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
   }
+}
 
-  return slug;
+/** Encode a slug exactly once, including when a caller accidentally passes an
+ * already encoded route segment. */
+export function encodeBlogSegment(value: string): string {
+  return encodeURIComponent(decodeBlogParam(value));
+}
+
+export function blogPath(slug: string): string {
+  return `/blogs/${encodeBlogSegment(slug)}`;
+}
+
+export function blogApiPath(slug: string): string {
+  return `/api/blogs/${encodeBlogSegment(slug)}`;
 }

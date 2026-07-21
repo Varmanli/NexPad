@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { IBlog } from "@/models/Blog";
 import Image from "next/image";
+import { blogPath } from "@/lib/slugify";
 
 interface BlogCardProps {
   blog: IBlog;
@@ -41,7 +42,7 @@ export default function BlogCard({ blog }: BlogCardProps) {
         {/* دکمه */}
         <div className="flex justify-end">
           <Link
-            href={`/blogs/${blog.slug || blog._id}`}
+            href={blogPath(blog.slug)}
             className="px-4 py-2 rounded-lg bg-primary text-black text-sm font-semibold shadow hover:opacity-90 transition mt-3"
           >
             مطالعه مقاله

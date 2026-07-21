@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Blog, { IBlog } from "@/models/Blog";
-import { generateUniqueSlug } from "@/lib/slugify";
+import { slugify } from "@/lib/slugify";
 
 export async function GET(req: Request) {
   try {
@@ -31,16 +31,23 @@ export async function POST(req: Request) {
     await connectDB();
     const body: Partial<IBlog> = await req.json();
 
-    if (!body.title) {
+    if (typeof body.title !== "string" || !slugify(body.title)) {
       return NextResponse.json({ error: "title الزامی است" }, { status: 400 });
     }
 
-    const slug = await generateUniqueSlug(body.title);
-    const blog = await Blog.create({ ...body, slug });
+    const title = slugify(body.title);
+    // Deliberately discard a supplied slug: it is server controlled.
+    const blog = await Blog.create({ ...body, title, slug: title });
 
     return NextResponse.json(blog);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating blog:", error);
+    if ((error as { code?: number }).code === 11000) {
+      return NextResponse.json(
+        { error: "عنوان مقاله باید یکتا باشد، چون URL دقیقاً برابر عنوان است" },
+        { status: 409 }
+      );
+    }
     return NextResponse.json({ error: "مشکل در ایجاد بلاگ" }, { status: 500 });
   }
 }

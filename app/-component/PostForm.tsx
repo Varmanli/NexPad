@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import RichEditor from "./rich-editor";
 import ImageProvider from "./context/ImageProvider";
 import { uploadFile } from "@/app/actions/file";
+import { blogPath } from "@/lib/slugify";
 import { IBlog } from "@/models/Blog";
 
 interface Category {
@@ -245,6 +246,21 @@ export default function PostForm({ post, mode }: PostFormProps) {
               {errors.title && (
                 <p className="mt-1.5 text-xs text-danger">{errors.title}</p>
               )}
+              <div className="mt-3 rounded-xl border border-border bg-surface-soft px-3 py-2">
+                <label className="block text-[11px] font-medium text-text-soft">
+                  آدرس مقاله (خودکار و فقط‌خواندنی)
+                </label>
+                <input
+                  readOnly
+                  value={title.trim() ? blogPath(title.trim()) : ""}
+                  placeholder="با وارد کردن عنوان، آدرس ساخته می‌شود"
+                  className="mt-1 w-full bg-transparent text-xs text-text-muted outline-none"
+                  aria-label="آدرس مقاله فقط‌خواندنی"
+                />
+                <p className="mt-1 text-[11px] text-text-soft">
+                  این آدرس همیشه دقیقاً از عنوان مقاله ساخته می‌شود و قابل ویرایش نیست.
+                </p>
+              </div>
             </div>
 
             {/* Rich Editor */}

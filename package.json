@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "backfill:blog-slugs": "tsx scripts/backfill-slugs.ts",
+    "test:blog-slugs": "tsx --test tests/blog-slug.test.ts",
+    "test": "npm run test:blog-slugs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1075.0",
@@ -57,6 +60,7 @@
     "eslint-config-next": "14.2.7",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.1",
     "typescript": "^5"
   }
 }
